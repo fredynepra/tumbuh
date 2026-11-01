@@ -1,0 +1,130 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  password     String
+  email        String?  @unique
+  role         String   @default("USER") // 'USER' atau 'ADMIN'
+  displayName  String   @default("Pekebun Tumbuh") @map("display_name")
+  timezone     String   @default("Asia/Jakarta")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  habits              Habit[]
+  gamificationProfile GamificationProfile?
+  xpTransactions      XpTransaction[]
+  userBadges          UserBadge[]
+
+  @@map("users")
+}
+
+model Habit {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  title            String
+  category         String   @default("Umum")
+  currentStreak    Int      @default(0) @map("current_streak")
+  longestStreak    Int      @default(0) @map("longest_streak")
+  totalCompletions Int      @default(0) @map("total_completions")
+  plantStage       String   @default("SEED") @map("plant_stage") // SEED, SPROUT, GROWING, BLOOM
+  reminderTime     String?  @map("reminder_time") // e.g. "07:30"
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checkIns CheckIn[]
+
+  @@index([userId, isActive])
+  @@map("habits")
+}
+
+model CheckIn {
+  id          String   @id @default(uuid())
+  habitId     String   @map("habit_id")
+  checkInDate String   @map("check_in_date") // 'YYYY-MM-DD'
+  recordedAt  DateTime @default(now()) @map("recorded_at")
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, checkInDate], name: "unique_habit_daily_checkin")
+  @@index([checkInDate])
+  @@map("check_ins")
+}
+
+model GamificationProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique @map("user_id")
+  currentLevel Int      @default(1) @map("current_level")
+  currentXp    Int      @default(0) @map("current_xp")
+  lifetimeXp   Int      @default(0) @map("lifetime_xp")
+  currentTitle String   @default("Penyemai Benih") @map("current_title")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([currentLevel])
+  @@map("gamification_profiles")
+}
+
+model XpTransaction {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  amount         Int
+  sourceType     String   @map("source_type") // WATERING, BADGE_AWARD, STREAK_BONUS, etc.
+  idempotencyKey String   @unique @map("idempotency_key")
+  metadataJson   String?  @map("metadata_json")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("xp_transactions")
+}
+
+model Badge {
+  id          String   @id // 'streak_5', 'first_water', etc.
+  title       String
+  description String
+  category    String   // STREAK, MILESTONE, DIVERSITY, TIME
+  bonusXp     Int      @default(0) @map("bonus_xp")
+  iconSvgName String   @map("icon_svg_name")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  userBadges UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  badgeId    String   @map("badge_id")
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId], name: "unique_user_badge")
+  @@index([userId, unlockedAt])
+  @@map("user_badges")
+}
+
+model SystemSetting {
+  key         String   @id
+  value       String   // Format JSON string konfigurasi
+  description String?
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
