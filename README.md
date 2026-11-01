@@ -221,10 +221,13 @@ Dokumentasi teknis dan bisnis komprehensif dapat dipelajari pada berkas:
 
 ---
 
-## 👤 Pengembang & Hak Cipta
+## 👤 Tim & Kontributor
 
-- **Author:** [Abu Aisyah (fredynepra)](https://github.com/fredynepra)
+- **Ide Produk:** Fawwaz Al Mujahid
+- **System Architect:** Abu Aisyah (fredynepra)
+- **Pengembang (Author):** [Abu Aisyah (fredynepra)](https://github.com/fredynepra)
 - **Email:** fredy.nepra@gmail.com
 - **Project:** Tumbuh Habit Tracker V2
 
 *Dibuat dengan dedikasi untuk mendukung pembiasaan positif yang menyenangkan dan berkelanjutan.* 🌱
+
