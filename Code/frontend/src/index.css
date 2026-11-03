@@ -953,3 +953,110 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   SOCIAL MEDIA SHARE BUTTONS (INSTAGRAM, FACEBOOK, TIKTOK)
+   ========================================================================== */
+.social-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.social-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.62rem 0.55rem;
+  border-radius: 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.18s var(--ease-spring), box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.social-share-btn.large {
+  padding: 0.78rem 0.75rem;
+  font-size: 0.86rem;
+  border-radius: 12px;
+}
+
+.social-share-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+
+.social-share-btn.facebook {
+  background: linear-gradient(135deg, #1877F2 0%, #0C5DC7 100%);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+.social-share-btn.whatsapp {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+@media (max-width: 460px) {
+  .social-platform-grid {
+    gap: 0.4rem;
+  }
+  .social-share-btn {
+    font-size: 0.74rem;
+    padding: 0.58rem 0.35rem;
+  }
+}
+
+.trophy-badge-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 1px solid #F59E0B;
+  color: #92400E;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.trophy-badge-share-btn:hover {
+  background: linear-gradient(135deg, #FDE68A 0%, #FCD34D 100%);
+  transform: translateY(-1px);
+}
+
+.mahkota-card-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #FEF3C7;
+  border: 1px solid #F59E0B;
+  color: #B45309;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mahkota-card-share-btn:hover {
+  background: #FDE68A;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 460px) {
+  .social-platform-grid {
+    gap: 0.4rem;
+  }
+  .social-share-btn {
+    font-size: 0.74rem;
+    padding: 0.58rem 0.35rem;
+  }
+}

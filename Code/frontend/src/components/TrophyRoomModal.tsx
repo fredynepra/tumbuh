@@ -1,35 +1,29 @@
 import React from 'react';
-import { Award, X, Lock, CheckCircle2 } from 'lucide-react';
+import { Award, X, Lock, CheckCircle2, Share2 } from 'lucide-react';
 import { Badge } from '../types';
+import { BADGE_EMOJI_MAP } from '../utils/socialShare';
 
 interface TrophyRoomModalProps {
   badges: Badge[];
   onClose: () => void;
+  onShareBadge?: (badge: Badge) => void;
 }
 
-export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({ badges, onClose }) => {
-  const badgeIcons: Record<string, string> = {
-    droplet: '💧',
-    sprout: '🌱',
-    leaves_five: '🌿',
-    tree_roots: '🌳',
-    lotus_crystal: '🪷',
-    pots_trio: '🪴',
-    flower_harvest: '🌸',
-    sun_rise: '🌅',
-    moon_stars: '🌙',
-  };
-
+export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({
+  badges,
+  onClose,
+  onShareBadge,
+}) => {
   const unlockedCount = badges.filter((b) => b.isUnlocked).length;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal-card"
-        style={{ maxWidth: 640, textAlign: 'left', maxHeight: '88vh', overflowY: 'auto' }}
+        style={{ maxWidth: 660, textAlign: 'left', maxHeight: '88vh', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        {/* Header (First button must remain the close button) */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#B45309', fontWeight: 700, fontSize: '0.9rem' }}>
@@ -52,6 +46,7 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({ badges, onClos
               justifyContent: 'center',
               color: 'var(--text-muted)',
             }}
+            title="Tutup Lemari Trofi"
           >
             <X size={20} />
           </button>
@@ -60,7 +55,7 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({ badges, onClos
         {/* Badge Grid */}
         <div className="trophy-grid">
           {badges.map((badge) => {
-            const emoji = badgeIcons[badge.iconSvgName] || '🏆';
+            const emoji = BADGE_EMOJI_MAP[badge.iconSvgName] || '🏆';
             return (
               <div key={badge.id} className={`badge-card ${badge.isUnlocked ? 'unlocked' : 'locked'}`}>
                 <div className="badge-icon-box">
@@ -71,23 +66,36 @@ export const TrophyRoomModal: React.FC<TrophyRoomModalProps> = ({ badges, onClos
                   {badge.title}
                 </div>
 
-                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.3, marginBottom: '0.4rem' }}>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.3, marginBottom: '0.45rem', flex: 1 }}>
                   {badge.description}
                 </p>
 
                 {badge.isUnlocked ? (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      color: '#15803D',
-                    }}
-                  >
-                    <CheckCircle2 size={12} /> Terbuka
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', width: '100%' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        color: '#15803D',
+                      }}
+                    >
+                      <CheckCircle2 size={12} /> Terbuka
+                    </span>
+                    {onShareBadge && (
+                      <button
+                        type="button"
+                        className="trophy-badge-share-btn"
+                        onClick={() => onShareBadge(badge)}
+                        title={`Bagikan lencana ${badge.title} ke Instagram, Facebook & TikTok`}
+                      >
+                        <Share2 size={11} />
+                        <span>Bagikan</span>
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#A8A29E' }}>
                     +{badge.bonusXp} XP

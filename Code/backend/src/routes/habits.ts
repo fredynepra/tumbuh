@@ -360,6 +360,7 @@ router.post('/:id/water', async (req: Request, res: Response) => {
             bonusXpAdded: 0,
             totalXpAdded: 0,
             isLevelUp: false,
+            isMahkotaMegahReached: false,
             habit: {
               ...habit,
               isWateredToday: true,
@@ -538,14 +539,22 @@ router.post('/:id/water', async (req: Request, res: Response) => {
     ]);
     const weeklyHistory = buildWeeklyHistory(checkInDates, today);
 
+    const mahkotaThreshold = Math.max(settings.bloomPerdanaMin, settings.mahkotaMegahMin);
+    const isMahkotaMegahReached =
+      habit.totalCompletions < mahkotaThreshold &&
+      streakResult.newTotalCompletions >= mahkotaThreshold;
+
     res.json({
       success: true,
-      message: `Tanaman berhasil disiram! +${txResult.totalXpAdded} XP didapatkan.`,
+      message: isMahkotaMegahReached
+        ? `🌸👑 Selamat! "${txResult.updatedHabit.title}" mencapai Mahkota Megah (5/5)! +${txResult.totalXpAdded} XP didapatkan.`
+        : `Tanaman berhasil disiram! +${txResult.totalXpAdded} XP didapatkan.`,
       alreadyWatered: false,
       baseXpAdded: txResult.baseXp,
       bonusXpAdded: txResult.bonusXp,
       totalXpAdded: txResult.totalXpAdded,
       isLevelUp: txResult.isLevelUp,
+      isMahkotaMegahReached,
       cooldownRemainingSeconds: isMinuteMode ? Math.ceil(intervalMs / 1000) : 0,
       habit: {
         ...txResult.updatedHabit,

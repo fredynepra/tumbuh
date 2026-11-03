@@ -1,13 +1,14 @@
 import React from 'react';
-import { X, Flame, Droplet, Check, Calendar, HeartHandshake, Edit3 } from 'lucide-react';
+import { X, Flame, Droplet, Check, Calendar, HeartHandshake, Edit3, Crown, Share2 } from 'lucide-react';
 import { Habit, GrowthSettings } from '../types';
-import { PlantIllustration, getBloomStageDetails } from './PlantIllustration';
+import { PlantIllustration, getBloomStageDetails, getBloomFlowerCount } from './PlantIllustration';
 
 interface HabitDetailModalProps {
   habit: Habit;
   onClose: () => void;
   onWater: (habitId: string) => Promise<void>;
   onOpenEdit: (habit: Habit) => void;
+  onShareMahkota?: (habit: Habit) => void;
   growthSettings?: GrowthSettings;
 }
 
@@ -16,9 +17,12 @@ export const HabitDetailModal: React.FC<HabitDetailModalProps> = ({
   onClose,
   onWater,
   onOpenEdit,
+  onShareMahkota,
   growthSettings,
 }) => {
   const stageInfo = getBloomStageDetails(habit.plantStage, habit.totalCompletions, growthSettings);
+  const flowerCount = getBloomFlowerCount(habit.plantStage, habit.totalCompletions, growthSettings);
+  const isMahkotaMegah = habit.plantStage === 'BLOOM' && flowerCount === 5;
 
   const handleWater = async () => {
     await onWater(habit.id);
@@ -184,6 +188,68 @@ export const HabitDetailModal: React.FC<HabitDetailModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Banner Selebrasi & Share Mahkota Megah (5/5) */}
+        {isMahkotaMegah && (
+          <div
+            id="mahkota-megah-detail-banner"
+            style={{
+              background: 'linear-gradient(135deg, #FEFCE8 0%, #FEF3C7 100%)',
+              border: '1.5px solid #F59E0B',
+              borderRadius: '14px',
+              padding: '14px 16px',
+              marginBottom: '1.25rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <div
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: '50%',
+                  background: '#F59E0B',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Crown size={16} />
+              </div>
+              <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 800, color: '#92400E' }}>
+                Selamat! Mahkota Megah (5/5 🌸) Berhasil Diselesaikan!
+              </h4>
+            </div>
+            <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#78350F', lineHeight: 1.45 }}>
+              Luar biasa! Konsistensimu merawat kebiasaan ini hingga mekar sempurna 5 bunga adalah bukti nyata ketekunanmu. Bagikan semangat positif ini agar semakin termotivasi untuk terus Tumbuh! 🌱✨
+            </p>
+            {onShareMahkota && (
+              <button
+                id="detail-share-mahkota-btn"
+                type="button"
+                onClick={() => onShareMahkota(habit)}
+                style={{
+                  width: '100%',
+                  padding: '9px 14px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #D97706 0%, #B45309 100%)',
+                  color: '#FFFFFF',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)',
+                }}
+              >
+                <Share2 size={14} />
+                <span>Bagikan ke WhatsApp & Facebook</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Supportive Recovery Section (Point 9) */}
         <div

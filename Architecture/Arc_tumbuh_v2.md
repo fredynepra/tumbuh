@@ -533,6 +533,7 @@ export interface WaterHabitResponse {
       progressPercent: number;
     };
     isLevelUp: boolean;
+    isMahkotaMegahReached?: boolean; // bernilai true saat tanaman mencapai 5/5 bunga mekar penuh (puncak Mahkota Megah)
     previousLevel?: number;
     unlockedBadges: Array<{
       id: string;
@@ -829,10 +830,8 @@ export interface RestoreHabitResponse {
             └── reengagementEngine.ts # Evaluasi Jeda Kehadiran & Pesan Suportif
 ```
 
-### 5.2 Mesin Status Perayaan (Celebration Modal Queue)
-Ketika satu aksi menyiram memicu kenaikan level **dan** membuka lencana sekaligus (misal: siram hari ke-5 menghasilkan 10 XP yang menembus Level 2 + membuka Lencana Streak 5 Hari), UI tidak boleh menumpuk dua modal secara berantakan.
-
-Sistem menggunakan **Event Queue Manager**:
+### 5.2 Mesin Status Perayaan & Antrean Modal (Celebration Modal Queue)
+Ketika satu aksi menyiram memicu kenaikan level, membuka lencana baru, dan mencapai puncak Mahkota Megah (5/5 🌸) sekaligus (misal: penyiraman ke-38 yang menaikkan level dan membuka lencana), antarmuka UI mengelola urutan selebrasi secara teratur menggunakan **Sequential Celebration Queue**:
 
 ```mermaid
 stateDiagram-v2
@@ -843,12 +842,40 @@ stateDiagram-v2
     state ProcessResponse <<choice>>
     ProcessResponse --> ShowLevelUp: isLevelUp == true
     ProcessResponse --> ShowBadge: isLevelUp == false && unlockedBadges.length > 0
+    ProcessResponse --> ShowMahkota: isLevelUp == false && unlockedBadges.empty && isMahkotaMegahReached == true
     ProcessResponse --> Idle: Tidak ada selebrasi khusus
 
-    ShowLevelUp --> ShowBadge: User menutup LevelUpModal & ada lencana
-    ShowLevelUp --> Idle: User menutup LevelUpModal & tidak ada lencana
-    ShowBadge --> Idle: User menutup BadgeModal
+    ShowLevelUp --> ShowBadge: User menutup LevelUpModal & ada lencana di queue
+    ShowLevelUp --> ShowMahkota: User menutup LevelUpModal, tidak ada lencana & mencapai Mahkota Megah
+    ShowLevelUp --> Idle: User menutup LevelUpModal & tidak ada event lanjutan
+
+    ShowBadge --> ShowBadge: User menutup BadgeModal & masih ada sisa lencana di queue
+    ShowBadge --> ShowMahkota: Antrean lencana selesai & mencapai Mahkota Megah
+    ShowBadge --> Idle: Antrean lencana selesai & tidak ada Mahkota Megah
+
+    ShowMahkota --> Idle: User menutup MahkotaMegahModal
 ```
+
+### 5.2b Arsitektur Mesin Berbagi Sosial & Generator Poster Canvas (Social Share Studio)
+Sistem dilengkapi modul berbagi sosial di sisi klien ([socialShare.ts](file:///data/apps/tumbuh/Code/frontend/src/utils/socialShare.ts)) dan komponen dialog ([SocialShareModal.tsx](file:///data/apps/tumbuh/Code/frontend/src/components/SocialShareModal.tsx)):
+
+1. **Komposisi Layout Poster (1080×1350 Canvas Engine):**
+   - Menggunakan resolusi standar vertikal 1080×1350 px (rasio 4:5) dengan 0% ketergantungan server.
+   - Merender kanvas berlapis (*layered canvas*):
+     - **Background:** Gradien botani hangat (*emerald & forest green*) dengan aksen cahaya lembut keemasan (*radial top glow*).
+     - **Badge/Centerpiece:** Ilustrasi medali emas lencana atau pohon rindang Mahkota Megah mekar penuh 5 bunga dengan partikel bintang 4 sudut (*sparkles*).
+     - **Kartu Identitas Pekebun:** Nama pengguna, level pekebun, gelar, total penyiraman, dan rekor streak.
+     - **Kotak Ucapan & Kutipan:** Salinan apresiasi hangat dan kutipan inspiratif untuk selalu bersemangat *terus Tumbuh*.
+2. **Protokol Eksekusi Platform:**
+   - **Facebook:**
+     ```typescript
+     const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(publicUrl)}&quote=${encodeURIComponent(finalCaption)}`;
+     window.open(fbUrl, '_blank', 'noopener,noreferrer');
+     ```
+   - **WhatsApp:**
+     - Pada perangkat seluler/touch: Memanggil deep-link native `whatsapp://send?text=...` sehingga langsung mengalihkan pengguna ke aplikasi WhatsApp di HP. Di aplikasi, pilihan teratas adalah **"Status Saya"** untuk dijadikan WhatsApp Status secara instan.
+     - Pada browser desktop: Memanggil `https://api.whatsapp.com/send?text=...` untuk membuka WhatsApp Web/Desktop.
+   - **Otomatisasi Gambar & Clipboard:** Saat salah satu tombol platform ditekan, poster gambar PNG otomatis diunduh ke perangkat pengguna dan seluruh caption ucapan motivasi disalin ke clipboard pengguna.
 
 ---
 

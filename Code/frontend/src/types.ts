@@ -73,11 +73,33 @@ export interface WaterResponse {
   bonusXpAdded: number;
   totalXpAdded: number;
   isLevelUp: boolean;
+  isMahkotaMegahReached?: boolean;
   previousLevel?: number;
   cooldownRemainingSeconds?: number;
   habit: Habit;
   profile: Profile;
   unlockedBadges: UnlockedBadgeItem[];
+}
+
+export type SocialPlatform = 'whatsapp' | 'facebook';
+
+export type SocialShareType = 'BADGE' | 'MAHKOTA_MEGAH';
+
+export interface SocialShareBadgeInfo {
+  id: string;
+  title: string;
+  description: string;
+  bonusXp: number;
+  iconSvgName: string;
+}
+
+export interface SocialSharePayload {
+  type: SocialShareType;
+  badge?: SocialShareBadgeInfo;
+  habit?: Habit;
+  userName?: string;
+  userLevel?: number;
+  userTitle?: string;
 }
 
 export type ReengagementSituation =

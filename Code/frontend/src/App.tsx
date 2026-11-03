@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Sparkles, RefreshCw, LogOut, X } from 'lucide-react';
+import { Plus, Sparkles, RefreshCw, LogOut, X, Share2 } from 'lucide-react';
 import {
   Habit,
   Profile,
@@ -10,12 +10,15 @@ import {
   ReengagementSituation,
   AuthUser,
   GrowthSettings,
+  SocialSharePayload,
 } from './types';
 import { LoginPage } from './components/LoginPage';
 import { GamificationHeader } from './components/GamificationHeader';
 import { HabitCard } from './components/HabitCard';
 import { LevelUpModal } from './components/LevelUpModal';
 import { BadgeModal } from './components/BadgeModal';
+import { MahkotaMegahModal } from './components/MahkotaMegahModal';
+import { SocialShareModal } from './components/SocialShareModal';
 import { TrophyRoomModal } from './components/TrophyRoomModal';
 import { AddHabitModal } from './components/AddHabitModal';
 import { EditHabitModal } from './components/EditHabitModal';
@@ -24,6 +27,7 @@ import { ReengagementBanner } from './components/ReengagementBanner';
 import { ArchivedHabitCard } from './components/ArchivedHabitCard';
 import { GardenPagination } from './components/GardenPagination';
 import { AdminSettingsPage } from './components/AdminSettingsPage';
+import { getBloomFlowerCount } from './components/PlantIllustration';
 
 const HABITS_PER_PAGE = 6;
 
@@ -81,6 +85,35 @@ export const App: React.FC = () => {
   const [levelUpData, setLevelUpData] = useState<{ level: number; title: string } | null>(null);
   const [unlockedBadgesQueue, setUnlockedBadgesQueue] = useState<UnlockedBadgeItem[]>([]);
   const [currentBadgeModal, setCurrentBadgeModal] = useState<UnlockedBadgeItem | null>(null);
+  const [pendingMahkotaHabit, setPendingMahkotaHabit] = useState<Habit | null>(null);
+  const [mahkotaMegahModalHabit, setMahkotaMegahModalHabit] = useState<Habit | null>(null);
+  const [socialSharePayload, setSocialSharePayload] = useState<SocialSharePayload | null>(null);
+
+  const openBadgeShareStudio = (badge: Badge | UnlockedBadgeItem) => {
+    setSocialSharePayload({
+      type: 'BADGE',
+      badge: {
+        id: badge.id,
+        title: badge.title,
+        description: badge.description,
+        bonusXp: badge.bonusXp,
+        iconSvgName: badge.iconSvgName,
+      },
+      userName: profile?.displayName || currentUser?.displayName || currentUser?.username || 'Pekebun Tumbuh',
+      userLevel: profile?.level || 1,
+      userTitle: profile?.title || 'Penyemai Benih',
+    });
+  };
+
+  const openMahkotaShareStudio = (habit: Habit) => {
+    setSocialSharePayload({
+      type: 'MAHKOTA_MEGAH',
+      habit,
+      userName: profile?.displayName || currentUser?.displayName || currentUser?.username || 'Pekebun Tumbuh',
+      userLevel: profile?.level || 1,
+      userTitle: profile?.title || 'Penyemai Benih',
+    });
+  };
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -432,13 +465,16 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [growthSettings]);
 
-  // Process celebration queue: when level up is closed, show badge if any
+  // Process celebration queue: when level up is closed, show badge or Mahkota Megah if any
   const handleCloseLevelUp = () => {
     setLevelUpData(null);
     if (unlockedBadgesQueue.length > 0) {
       const nextBadge = unlockedBadgesQueue[0];
       setUnlockedBadgesQueue((prev) => prev.slice(1));
       setCurrentBadgeModal(nextBadge);
+    } else if (pendingMahkotaHabit) {
+      setMahkotaMegahModalHabit(pendingMahkotaHabit);
+      setPendingMahkotaHabit(null);
     }
   };
 
@@ -448,11 +484,19 @@ export const App: React.FC = () => {
       const nextBadge = unlockedBadgesQueue[0];
       setUnlockedBadgesQueue((prev) => prev.slice(1));
       setCurrentBadgeModal(nextBadge);
+    } else if (pendingMahkotaHabit) {
+      setMahkotaMegahModalHabit(pendingMahkotaHabit);
+      setPendingMahkotaHabit(null);
     }
   };
 
   // Water Habit action handler
   const handleWaterHabit = async (habitId: string) => {
+    const prevHabit = habits.find((h) => h.id === habitId);
+    const prevFlowers = prevHabit
+      ? getBloomFlowerCount(prevHabit.plantStage, prevHabit.totalCompletions, growthSettings || undefined)
+      : 0;
+
     try {
       const res = await authFetch(`/api/habits/${habitId}/water`, {
         method: 'POST',
@@ -501,15 +545,31 @@ export const App: React.FC = () => {
 
         showToast(data.message);
 
-        // Check if level up or badges unlocked
+        const newFlowers = data.habit
+          ? getBloomFlowerCount(data.habit.plantStage, data.habit.totalCompletions, growthSettings || undefined)
+          : 0;
+        const reachedMahkota =
+          !data.alreadyWatered &&
+          Boolean(data.habit) &&
+          (Boolean(data.isMahkotaMegahReached) || (prevFlowers < 5 && newFlowers === 5));
+
+        // Check if level up, badges unlocked, or Mahkota Megah (5/5) reached
         if (data.isLevelUp) {
           setLevelUpData({ level: data.profile.level, title: data.profile.title });
           if (data.unlockedBadges && data.unlockedBadges.length > 0) {
             setUnlockedBadgesQueue(data.unlockedBadges);
           }
+          if (reachedMahkota && data.habit) {
+            setPendingMahkotaHabit(data.habit);
+          }
         } else if (data.unlockedBadges && data.unlockedBadges.length > 0) {
           setCurrentBadgeModal(data.unlockedBadges[0]);
           setUnlockedBadgesQueue(data.unlockedBadges.slice(1));
+          if (reachedMahkota && data.habit) {
+            setPendingMahkotaHabit(data.habit);
+          }
+        } else if (reachedMahkota && data.habit) {
+          setMahkotaMegahModalHabit(data.habit);
         }
 
         if (data.habit && detailHabit && detailHabit.id === habitId) {
@@ -1103,6 +1163,7 @@ export const App: React.FC = () => {
                         onWater={handleWaterHabit}
                         onEdit={(h) => setEditingHabit(h)}
                         onViewDetail={(h) => setDetailHabit(h)}
+                        onShareMahkota={(h) => openMahkotaShareStudio(h)}
                         growthSettings={growthSettings || undefined}
                       />
                     ))}
@@ -1220,9 +1281,20 @@ export const App: React.FC = () => {
                     {badge.description}
                   </p>
                   {badge.isUnlocked ? (
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#15803D' }}>
-                      ✔ Terbuka (+{badge.bonusXp} XP)
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#15803D' }}>
+                        ✔ Terbuka (+{badge.bonusXp} XP)
+                      </span>
+                      <button
+                        type="button"
+                        className="trophy-badge-share-btn"
+                        onClick={() => openBadgeShareStudio(badge)}
+                        title={`Bagikan lencana ${badge.title} ke Instagram, Facebook & TikTok`}
+                      >
+                        <Share2 size={11} />
+                        <span>Bagikan</span>
+                      </button>
+                    </div>
                   ) : (
                     <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#A8A29E' }}>
                       Hadiah: +{badge.bonusXp} XP
@@ -1256,12 +1328,34 @@ export const App: React.FC = () => {
 
       {/* Badge Unlocked Celebration Modal */}
       {currentBadgeModal && (
-        <BadgeModal badge={currentBadgeModal} onClose={handleCloseBadgeModal} />
+        <BadgeModal
+          badge={currentBadgeModal}
+          profile={profile}
+          userName={currentUser.displayName || currentUser.username}
+          onOpenShareStudio={(payload) => setSocialSharePayload(payload)}
+          onClose={handleCloseBadgeModal}
+        />
+      )}
+
+      {/* Mahkota Megah (5/5) Pinnacle Celebration Modal */}
+      {mahkotaMegahModalHabit && (
+        <MahkotaMegahModal
+          habit={mahkotaMegahModalHabit}
+          profile={profile}
+          userName={currentUser.displayName || currentUser.username}
+          growthSettings={growthSettings || undefined}
+          onOpenShareStudio={(payload) => setSocialSharePayload(payload)}
+          onClose={() => setMahkotaMegahModalHabit(null)}
+        />
       )}
 
       {/* Trophy Room Modal Popup (from header button) */}
       {isTrophyOpen && (
-        <TrophyRoomModal badges={badges} onClose={() => setIsTrophyOpen(false)} />
+        <TrophyRoomModal
+          badges={badges}
+          onShareBadge={(b) => openBadgeShareStudio(b)}
+          onClose={() => setIsTrophyOpen(false)}
+        />
       )}
 
       {/* Add Habit Modal */}
@@ -1289,7 +1383,16 @@ export const App: React.FC = () => {
             setDetailHabit(null);
             setEditingHabit(h);
           }}
+          onShareMahkota={(h) => openMahkotaShareStudio(h)}
           growthSettings={growthSettings || undefined}
+        />
+      )}
+
+      {/* Social Media Share Studio Modal (Instagram, Facebook, TikTok) */}
+      {socialSharePayload && (
+        <SocialShareModal
+          payload={socialSharePayload}
+          onClose={() => setSocialSharePayload(null)}
         />
       )}
 

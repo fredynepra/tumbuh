@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Droplet, Check, Flame, Edit2, Info, Clock } from 'lucide-react';
+import { Droplet, Check, Flame, Edit2, Info, Clock, Share2 } from 'lucide-react';
 import { Habit, GrowthSettings } from '../types';
 import { PlantIllustration, getBloomFlowerCount } from './PlantIllustration';
 
@@ -8,6 +8,7 @@ interface HabitCardProps {
   onWater: (habitId: string) => Promise<void>;
   onEdit?: (habit: Habit) => void;
   onViewDetail?: (habit: Habit) => void;
+  onShareMahkota?: (habit: Habit) => void;
   growthSettings?: GrowthSettings;
 }
 
@@ -16,6 +17,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
   onWater,
   onEdit,
   onViewDetail,
+  onShareMahkota,
   growthSettings,
 }) => {
   const [isWateringAnim, setIsWateringAnim] = useState(false);
@@ -48,6 +50,12 @@ export const HabitCard: React.FC<HabitCardProps> = ({
     GROWING: 'Rindang (Growing)',
     BLOOM: 'Mekar (Bloom)',
   };
+
+  const flowerCount =
+    habit.plantStage === 'BLOOM'
+      ? getBloomFlowerCount(habit.plantStage, habit.totalCompletions, growthSettings)
+      : 0;
+  const isMahkotaMegah = flowerCount === 5;
 
   return (
     <div id={`habit-card-${habit.id}`} className="habit-card">
@@ -138,10 +146,24 @@ export const HabitCard: React.FC<HabitCardProps> = ({
         >
           {habit.title}
         </h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-          <span className="stage-pill">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <span
+            className="stage-pill"
+            style={
+              isMahkotaMegah
+                ? {
+                    background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                    color: '#92400E',
+                    border: '1px solid #F59E0B',
+                    fontWeight: 700,
+                  }
+                : undefined
+            }
+          >
             {habit.plantStage === 'BLOOM'
-              ? `BLOOM (${getBloomFlowerCount(habit.plantStage, habit.totalCompletions, growthSettings)}/5 🌸)`
+              ? isMahkotaMegah
+                ? '👑 Mahkota Megah (5/5 🌸)'
+                : `BLOOM (${flowerCount}/5 🌸)`
               : stageLabels[habit.plantStage] || habit.plantStage}
           </span>
           {onViewDetail && (
@@ -162,6 +184,20 @@ export const HabitCard: React.FC<HabitCardProps> = ({
             >
               <Info size={12} />
               <span>Detail</span>
+            </button>
+          )}
+          {isMahkotaMegah && onShareMahkota && (
+            <button
+              type="button"
+              className="mahkota-card-share-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onShareMahkota(habit);
+              }}
+              title="Bagikan pencapaian Mahkota Megah (5/5) ke Instagram, Facebook & TikTok"
+            >
+              <Share2 size={11} />
+              <span>Bagikan</span>
             </button>
           )}
         </div>

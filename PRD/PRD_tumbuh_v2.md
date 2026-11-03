@@ -198,7 +198,17 @@ Lencana adalah trofi visual yang diberikan kepada pengguna ketika kriteria spesi
 4. **Halaman / Tab Profil & Lemari Trofi (Trophy Room):**
    - Menampilkan total XP, Level saat ini, Title, serta galeri seluruh lencana.
    - Lencana yang belum terbuka ditampilkan dalam status siluet abu-abu redup (*locked state*) dengan teks petunjuk cara mendapatkannya, memicu rasa ingin tahu (*curiosity loop*).
-   - Lencana yang sudah terbuka tampil penuh warna dengan tanggal pencapaian.
+   - Lencana yang sudah terbuka tampil penuh warna dengan tanggal pencapaian serta tombol aksi cepat **"Bagikan"** ke media sosial.
+5. **Fitur Berbagi Sosial (Social Media Sharing — Facebook & WhatsApp):**
+   - **Dua Pemicu Selebrasi Utama:**
+     1. **Saat Meraih Lencana Baru:** Ditampilkan langsung pada modal perayaan lencana (`BadgeModal`) serta dapat diakses kapan saja dari Lemari Trofi (`TrophyRoomModal`).
+     2. **Saat Menyelesaikan Mahkota Megah (5/5 🌸):** Ditampilkan pada modal perayaan puncak Mahkota Megah (`MahkotaMegahModal`), kartu kebiasaan bermahkota (`HabitCard`), dan modal detail tanaman (`HabitDetailModal`).
+   - **Platform Resmi:**
+     - **Facebook:** Membuka Facebook Web Sharer secara langsung dengan ucapan selamat, statistik dedikasi, serta tautan publik aplikasi.
+     - **WhatsApp:** Pada perangkat seluler (HP) langsung membuka aplikasi WhatsApp native via URL scheme `whatsapp://send` sehingga pengguna dapat langsung memilih **"Status Saya (My Status)"** di urutan paling atas atau mengirim ke chat/grup. Pada browser desktop, membuka tab WhatsApp Web/Desktop.
+   - **Generator Kartu Poster Pencapaian (1080×1350 PNG):** Sistem merender gambar poster artistik resolusi tinggi di sisi klien (0% beban server) lengkap dengan ilustrasi medali emas lencana atau pohon rindang 5 bunga mekar, nama pekebun, level, statistik total penyiraman, dan kutipan motivasi untuk *terus Tumbuh*. Gambar poster otomatis diunduh saat pengguna menekan tombol share.
+   - **Pesan Ucapan Selamat & Semangat Motivasi Terus Tumbuh:** Salinan teks siap pakai yang hangat, apresiatif, dan membangun semangat konsistensi jangka panjang, dilengkapi tombol 1-klik *"Salin teks ucapan motivasi saja"*.
+   - **Studio Pratinjau (Social Share Studio Modal):** Dialog interaktif untuk meninjau poster PNG resolusi tinggi, mengunduh file gambar, menyunting ucapan selamat/caption, atau mereset ke teks bawaan pabrik.
 
 ---
 
@@ -351,11 +361,18 @@ Untuk menjaga fokus pada stabilitas, kecepatan rilis, dan kemudahan pengujian, f
   - Tombol *"Detail"* (🔍) untuk membuka ringkasan performa & kartu pemulihan suportif.
   - Tombol *"Edit"* (✏️) untuk mengubah preferensi kebiasaan atau jadwal pengingat.
 
-### 9.3 Modal Selebrasi (Level Up & Badge Unlocked)
+### 9.3 Modal Selebrasi (Level Up, Badge Unlocked, & Mahkota Megah)
 - Backdrop blur elegan (*glassmorphism*).
 - Kartu modal di tengah layar dengan animasi *scale-in*.
 - Ikon lencana/level berukuran besar beranimasi kilau (*gleam particle*).
-- Tombol aksi: "Lanjutkan Menanam" atau "Bagikan Pencapaian" (opsional).
+- **Bagian Bagikan Sosial (Social Share Bar):** Tombol terintegrasi **Facebook** dan **WhatsApp** dengan ikon resmi, tautan cepat pratinjau poster PNG artistik (1080×1350), serta opsi salin caption ucapan motivasi.
+- **Modal Khusus Mahkota Megah (5/5 🌸):** Selebrasi pencapaian paripurna saat tanaman mekar 5 bunga sempurna dengan partikel kilau emas (*golden sparkles*) dan ucapan selamat khusus penyemangat konsistensi.
+- Tombol aksi utama: "Koleksi Lencana" atau "Terus Tumbuh & Rawat Kebun".
+
+### 9.3b Studio Pratinjau Bagikan (Social Share Studio Modal)
+- **Pratinjau Visual Gambar:** Menampilkan kartu poster PNG portrait (1080×1350) hasil render canvas client-side.
+- **Editor Salinan Pesan:** Bidang teks interaktif untuk melihat dan menyunting caption ucapan motivasi sebelum dibagikan, dilengkapi tombol *Salin Ucapan* dan *Reset*.
+- **Tombol Aksi Platform:** Tombol besar Facebook dan WhatsApp untuk memicu pembagian instan ke web/aplikasi tujuan.
 
 ### 9.4 Modal Detail Kebiasaan & Pemulihan Suportif (Habit Detail & Recovery Modal)
 - **Header:** Nama kebiasaan, kategori, dan tombol tutup cepat.
